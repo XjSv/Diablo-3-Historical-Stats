@@ -3,7 +3,8 @@
 
 Diablo 3 Historical Stats Application (Beta/Prototype)
 
-This is a very sloppy release due to user requests and a short period of time. I would almost consider this a prototype. 
+This is a very sloppy release because it was never ment to be public. Due to user requests I am putting the initial code up.
+I would almost consider this a prototype.
 It has little documentation, but I will document more on the days to come.
 
 Requirements:
