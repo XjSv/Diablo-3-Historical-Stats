@@ -12,6 +12,7 @@ Requirements:
  - PHP 5.3+
  - MongoDB
  - ** Windows (for the load process)
+ 
 - - -
 
 ** For other OS's you can either run the scheduled jobs manually via the browser or hopefully you know how to schedule jobs for your OS. If not and requested I will post instructions.
@@ -20,6 +21,7 @@ Requirements:
 - - -
  - Edit: 'config/settings.php' and enter the desired db and collection names.
  - All the data in settings.php IS REQUIRED.
+ 
 - - -
 
 ### Process Flow:
@@ -27,6 +29,7 @@ Requirements:
  - Schedule a job to run 'Run Load.vbs' every hour. (This gets character data and images)
  - Navigate to '/index.php' to view the application.
  - Navigate to 'app_stats.php' to view application stats.
+ 
 - - -
 
 Using: https://github.com/XjSv/Diablo-3-API-PHP & HighCharts
