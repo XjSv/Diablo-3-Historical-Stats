@@ -1,0 +1,46 @@
+.profile-wrapper .subcategory { border-bottom: 1px solid #2f281e; padding-bottom: 10px; margin-bottom: 10px }
+.profile-link { position: absolute; top: 5px; right: 0px; font-size: 11px; }
+.ko-kr .profile-link,
+.zh-tw .profile-link { font-size:12px }
+.profile-body { padding: 30px; }
+
+/* last updated */
+.profile .last-updated { font-style: italic; color: #7B6D55; font-size: 12px; text-align: center; }
+
+/* tooltip */
+.profile-tooltip { padding:0px 1px }
+.profile-tooltip .subheader { margin-bottom:5px }
+.profile-tooltip p { margin: 0; }
+
+.profile-tooltip.hero-tab-tooltip { min-width:130px }
+.profile-tooltip.progression-tooltip { min-width:130px }
+.profile-tooltip.progression-tooltip .hero-name { margin-top:15px }
+
+.profile-tooltip .fallen-hero-data { padding-top:20px }
+
+/* header */
+.body-top { background-image:url(../img/d3/profile-hero-small.jpg) }
+.profile-head { padding: 30px 30px 10px; }
+.profile-head a { display:block }
+.profile-head .top-stats { float: right; color: #7b6d55; margin-top: 5px; }
+.profile-head .top-stats li { display: inline-block; padding: 5px 0 5px 10px; margin-left: 20px; border-left: 1px solid #312a1e; }
+.profile-head .top-stats li strong { display: block; }
+.profile-head .sigil { float: left; width: 55px; height: 55px; border: 1px solid #312a1e; float: left; margin-right: 20px; }
+.profile-head .header { font-size: 31px; }
+.profile-head .header span { color: #4e4536; font-size: 16px; font-family:Arial, sans-serif; } /* battletag id */
+.profile-head a:hover .header span { color: #fff }
+
+/* progression */
+.progression .progress-arrow-hitbox { position:absolute; padding:5px; margin-top:-5px; cursor: help; }
+.progression .progress-arrow-hitbox .progress-arrow { display:block; width:13px; height:13px }
+
+.progression .difficulty-labels .difficulty-label { color:#7b6d55; font-size:11px; text-transform:uppercase; display:block; float:left}
+.progression .difficulty-labels .difficulty-label .label-marker { display:block; border-left:1px solid #322d24; height:4px; }
+
+/* global overrides */
+.page-section .section-header { padding: 0; }
+.page-section .section-body { padding-top: 30px; }
+.tab-menu { margin:0; }
+.tab-menu li a { padding: 0 25px; }
+.page-section { background-position:0 28px; }
+

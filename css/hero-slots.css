@@ -1,0 +1,103 @@
+/* slots */
+.gear-slots { position: relative; width: 305px; height: 425px; margin-bottom: 6px; }
+.gear-slots li { position: absolute; display: block; outline: none; height: 88px; width: 66px; text-align: center; }
+.gear-slots li .slot-link { display:block; height: 86px; width: 64px; margin:1px; }
+.gear-slots li .image { display: block; width: 100%; height: 100%; overflow:hidden; }
+.gear-slots li .image img { position: relative; }
+.gear-slots li .d3-icon { position: absolute; top: 0; left: 0; display: block }
+.gear-slots li .d3-icon .icon-item-inner { display: block; height: 84px; width: 62px; }
+.gear-slots li .remove { top: 2px; left: 2px; }
+.gear-slots li .goto { top: 18px; left: 2px; }
+.gear-slots li.equipped:hover a { display: block; }
+
+.gear-slots li .sockets-wrapper { width:100%; height:100%; display:block; position:absolute; top:0; left:0; opacity:0.8 }
+.gear-slots li a:hover .sockets-wrapper { opacity:1 }
+.gear-slots li .sockets-wrapper .sockets-align { height: 88px; width: 66px; display:table-cell; vertical-align:middle }
+.gear-slots li .sockets-wrapper .socket { display:inline-block; vertical-align:middle; width:32px; height:32px; background:url(../img/d3/skill-overlays.png) 0 -71px no-repeat; text-align:center; position:relative; left:1px; }
+.ie6 .gear-slots li .sockets-wrapper .socket {  background-image:url(../img/d3/skill-overlays.gif) }
+.gear-slots li .sockets-wrapper .socket .gem { margin:6px auto 0;  width:20px; height:20px }
+
+/* slot sizes */
+.gear-slots .slot-head,
+.gear-slots .slot-head .sockets-wrapper .sockets-align { width: 66px; height: 66px; }
+.gear-slots .slot-head .slot-link { width:64px; height:64px }
+.gear-slots .slot-head .d3-icon .icon-item-inner { width: 62px; height: 62px; }
+
+.gear-slots .slot-torso,
+.gear-slots .slot-torso .sockets-wrapper .sockets-align { width: 82px; height: 115px; }
+.gear-slots .slot-torso .slot-link { width:80px; height:113px }
+.gear-slots .slot-torso .d3-icon .icon-item-inner { width: 78px; height: 111px; }
+
+.gear-slots .slot-neck,
+.gear-slots .slot-neck .sockets-wrapper .sockets-align { width: 56px; height: 56px; }
+.gear-slots .slot-neck .slot-link { width:54px; height:54px }
+.gear-slots .slot-neck .d3-icon .icon-item-inner { width: 52px; height: 52px; }
+
+.gear-slots .slot-waist,
+.gear-slots .slot-waist .sockets-wrapper .sockets-align { width: 82px; height: 34px; }
+.gear-slots .slot-waist .slot-link { width:80px; height:32px }
+.gear-slots .slot-waist .d3-icon .icon-item-inner { width: 78px; height: 30px; }
+
+.gear-slots .slot-leftFinger,
+.gear-slots .slot-rightFinger,
+.gear-slots .slot-leftFinger .sockets-wrapper .sockets-align,
+.gear-slots .slot-rightFinger .sockets-wrapper .sockets-align { width: 42px; height: 42px; }
+.gear-slots .slot-leftFinger .slot-link,
+.gear-slots .slot-rightFinger .slot-link { width:40px; height:40px }
+.gear-slots .slot-leftFinger .d3-icon .icon-item-inner,
+.gear-slots .slot-rightFinger .d3-icon .icon-item-inner { width: 38px; height: 38px; }
+
+.gear-slots .slot-offHand .disabled-off-hand { display:block; width: 66px; height: 130px; background:url(../img/d3/disabled-offhand.gif) }
+.gear-slots .slot-offHand .disabled-off-hand .image { opacity:0.3; }
+.gear-slots .slot-offHand .disabled-off-hand .image img { top:1px; }
+
+.gear-slots .slot-offHand,
+.gear-slots .slot-mainHand,
+.gear-slots .slot-offHand .sockets-wrapper .sockets-align,
+.gear-slots .slot-mainHand .sockets-wrapper .sockets-align { width: 66px; height: 130px; }
+.gear-slots .slot-mainHand .slot-link,
+.gear-slots .slot-offHand .slot-link { width:64px; height:128px }
+.gear-slots .slot-offHand .d3-icon .icon-item-inner,
+.gear-slots .slot-mainHand .d3-icon .icon-item-inner { width: 62px; height: 126px; }
+
+/* slot image fixes */
+.gear-slots .slot-head .image img { top: -31px; }
+.gear-slots .slot-shoulders .image img { top: -20px; }
+.gear-slots .slot-neck .image img { width: 52px; height: 52px; top:1px; }
+.gear-slots .slot-torso .image img { top: -25px; left:-1px; }
+.gear-slots .slot-waist .image img { top: -15px; }
+.gear-slots .slot-hands .image img,
+.gear-slots .slot-bracers .image img { top: -20px; }
+.gear-slots .slot-leftFinger .image img,
+.gear-slots .slot-rightFinger .image img { top: -12px; left: -12px; }
+.gear-slots .slot-legs .image img { top: -20px; }
+.gear-slots .slot-feet .image img { top: -20px; }
+.gear-slots .slot-head .image,
+.gear-slots .slot-shoulders .image,
+.gear-slots .slot-feet .image,
+.gear-slots .slot-bracers .image,
+.gear-slots .slot-hands .image { overflow:visible; }
+.gear-slots .slot-shoulders { clip:rect(-19px, 76px, 99px, -10px); clip:rect(-19px 76px 99px -10px); }
+.gear-slots .slot-hands { clip:rect(-19px, 76px, 100px, -10px); clip:rect(-19px 76px 100px -10px); }
+
+/* slot positioning */
+.gear-slots .slot-head { z-index:12; top: 4px; left: 121px; }
+.gear-slots .slot-shoulders { z-index:10; top: 28px; left: 39px; }
+.gear-slots .slot-neck { z-index:1; top: 48px; right: 44px; }
+.gear-slots .slot-torso { z-index:13; top: 74px; left: 113px; }
+.gear-slots .slot-hands { z-index:9; top: 127px; left: 13px; }
+.gear-slots .slot-bracers { z-index:3; top: 127px; right: 10px; }
+.gear-slots .slot-waist { z-index:4; top: 193px; left: 113px; }
+.gear-slots .slot-legs { z-index:11; bottom: 106px; left: 121px; }
+.gear-slots .slot-feet { z-index:8; bottom: 14px; left: 121px; }
+.gear-slots .slot-offHand { z-index:5; bottom: 13px; right: 10px; }
+.gear-slots .slot-mainHand { z-index:6; bottom: 13px; left: 13px; }
+.gear-slots .slot-leftFinger { z-index:2; bottom: 156px; left: 25px; }
+.gear-slots .slot-rightFinger { z-index:7; bottom: 156px; right: 22px; }
+
+/* slot item quality */
+.gear-slots .slot:hover .image { background: rgba(0, 0, 0, .20); }
+.gear-slots .slot.icon-active .image { background: rgba(0, 0, 0, .50); }
+.gear-slots .slot.slot-disabled { cursor: default; background: url("../img/d3/slot-disabled.jpg") 50% 50% no-repeat; }
+.gear-slots .slot.slot-disabled .image { background: none; }
+.gear-slots .slot.is-quiver { background: url("../img/d3/slot-quiver.jpg") 50% 50% no-repeat; }
