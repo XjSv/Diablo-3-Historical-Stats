@@ -33,3 +33,7 @@ Using: https://github.com/XjSv/Diablo-3-API-PHP
 
 Demo Video: http://www.youtube.com/watch?v=LozMnrCti5g
 
+Live Site: http://d3stats.tk
+
+Disclaimer: This application or armandotresova.com is no way affiliated or endorsed by Blizzard Entertainment®. All artwork related to the game and all other copyrighted content related to Diablo® III is property of Blizzard Entertainment®, Inc.
+
