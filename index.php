@@ -1,17 +1,23 @@
 <?php
 session_start();
+date_default_timezone_set('America/New_York');
 
 require_once('class/diablo3.api.class.php');
 require_once('config/settings.php');
 require_once('include/functions.php');
 
+unregisterGlobals();
+removeMagicQuotes();
+
+$bad_search_tag   = '';
+$search_tag_added = '';
+$GOOGLE_ANALYTICS = GOOGLE_ANALYTICS;
+
 if(!isset($_SESSION['INITIALIZE']) || !$_SESSION['INITIALIZE']) {
    $_SESSION['ACTIVE_USER']      = '';
-   $_SESSION['ACTIVE_STAT']      = '';
    $_SESSION['ACTIVE_HERO_ID']   = '';
-   $_SESSION['ACTIVE_CLASS']     = '';
-   $_SESSION['ACTIVE_GENDER']    = '';
    $_SESSION['HISTORIC_HERO_ID'] = '';
+   $_SESSION['ACTIVE_REGION']    = '';
    $_SESSION['INITIALIZE']       = true;
 }
 
@@ -19,21 +25,13 @@ if(isset($_GET['user']) && $_GET['user'] != '') {
     $_SESSION['ACTIVE_USER'] = $_GET['user'];
 }
 
-if(isset($_GET['stat']) && $_GET['stat'] != '') {
-    $_SESSION['ACTIVE_STAT'] = $_GET['stat'];
+if(isset($_GET['region']) && $_GET['region'] != '') {
+    $_SESSION['ACTIVE_REGION'] = $_GET['region'];
 }
 
 if(isset($_GET['hero_id']) && $_GET['hero_id'] != '') {
     $_SESSION['ACTIVE_HERO_ID']   = (int)$_GET['hero_id'];
     $_SESSION['HISTORIC_HERO_ID'] = '';
-}
-
-if(isset($_GET['class']) && $_GET['class'] != '') {
-    $_SESSION['ACTIVE_CLASS'] = $_GET['class'];
-}
-
-if(isset($_GET['gender']) && $_GET['gender'] != '') {
-    $_SESSION['ACTIVE_GENDER'] = $_GET['gender'];
 }
 
 if(isset($_GET['historic_hero_id']) && $_GET['historic_hero_id'] != '') {
@@ -42,40 +40,138 @@ if(isset($_GET['historic_hero_id']) && $_GET['historic_hero_id'] != '') {
 
 $connection = new Mongo();
 $db         = $connection->selectDB(PROD_DB);
+$db->authenticate(PROD_DB_USER, PROD_DB_PASS);
 
-// Hero Barb
+// Setup collections
 //
-$career_collection = $db->selectCollection(CAREER_COLLECTION);
-$hero_collection   = $db->selectCollection(HERO_COLLECTION);
-$item_collection   = $db->selectCollection(ITEM_COLLECTION);
-$users             = $db->command(array("distinct" => CAREER_COLLECTION, "key" => "battleTag"));
+$career_collection        = $db->selectCollection(CAREER_COLLECTION);
+$hero_collection          = $db->selectCollection(HERO_COLLECTION);
+$item_collection          = $db->selectCollection(ITEM_COLLECTION);
+$app_data_collection      = $db->selectCollection(APP_DATA_COLLECTION);
+//$app_users_collection     = $db->selectCollection(APP_USERS_COLLECTION);
+//$app_user_favs_collection = $db->selectCollection(APP_USER_FAVS_COLLECTION);
 
-// Build User List
+// Search function
 //
+if(isset($_POST['search_battletag'])){
+    $search_results = $career_collection->find(array('battleTag' => $_POST['search_battletag'], '_region' => $_POST['search_region']))->sort(array('_id' => -1))->limit(1);
+
+    // Set User and Region if we found anything
+    //
+    if($search_results->count() > 0) {
+        $_SESSION['ACTIVE_USER']   = $_POST['search_battletag'];
+        $_SESSION['ACTIVE_REGION'] = $_POST['search_region'];
+
+        // Add data to APP_DATA collection (Incriment Search)
+        //
+        $app_data_results = $app_data_collection->find(array('battletag' => $_SESSION['ACTIVE_USER'], 'region' => $_SESSION['ACTIVE_REGION']))->sort(array('_id' => -1))->limit(1);
+        if($app_data_results->count() > 0) {
+            $app_data_collection->update(array("battletag" => $_SESSION['ACTIVE_USER']), array('$set' => array("last_viewd_date" => date('F j, Y, g:i:s A'))));
+            $app_data_collection->update(array("battletag" => $_SESSION['ACTIVE_USER']), array('$inc' => array("searched_count" => 1)));
+        }
+    } else {
+        // We dont have battle tag we need to add it (Validate it first)
+        //
+        $Diablo3     = new Diablo3($_POST['search_battletag'], $_POST['search_region'], 'en_US');
+        $CAREER_DATA = $Diablo3->getCareer();
+        if(is_array($CAREER_DATA)) {
+            $app_data_insert = array('battletag'       => $_POST['search_battletag'],
+                                     'region'          => $_POST['search_region'],
+                                     'searched_count'  => 0,
+                                     'views'           => 1,
+                                     'last_viewd_date' => date('F j, Y, g:i:s A'));
+
+            $app_data_collection->insert($app_data_insert);
+
+            $no_reply      = NOREPLY_EMAIL;
+            $default_email = DEFAULT_EMAIL;
+            $MAILER_URL    = MAILER_URL;
+            // Mail me when someone adds a new battletag
+            //
+            $headers  = "MIME-Version: 1.0\r\n";
+            $headers .= "Content-type: text/html; charset=iso-8859-1\r\n";
+            $headers .= "From: {$no_reply}\r\n";
+            $headers .= "Reply-To: {$no_reply}\r\n";
+            $headers .= "Return-Path: {$default_email}\r\n";
+            $headers .= "X-Mailer: {$MAILER_URL} (http://www.{$MAILER_URL})";
+
+            @mail($default_email, 'Diablo 3 Stats App - New BattleTag Added.', "BattleTag ".$_POST['search_battletag']." added to the DB.", $headers);
+
+            $search_tag_added = '<div class="alert alert-success">
+                                     <button type="button" class="close" data-dismiss="alert">×</button>
+                                     <h4>Success!</h4>
+                                     The BattleTag you added has just been added to queue for processing. Check back later.
+                                 </div>';
+        } else {
+            // Not a valid battletag or region.
+            //
+            $bad_search_tag = '<div class="alert alert-error">
+                                   <button type="button" class="close" data-dismiss="alert">×</button>
+                                   <h4>Warning!</h4>
+                                   The BattleTag and/or Region you entered is not valid.
+                               </div>';
+        }
+    }
+}
+
+// Get top Viewd users
+//
+$top_users_results = $app_data_collection->find()->sort(array('views' => -1))->limit(APP_USERS_LIMIT);
 $user_list = '<div class="navbar"><div class="navbar-inner"><div class="container"><a class="brand" href="#">Users</a><ul class="nav">';
-foreach($users['values'] as $battleTag) {
-    ($battleTag == $_SESSION['ACTIVE_USER']) ? $active = "class='active'" : $active = "";
-    $user_list .= "<li {$active}><a href='?user=".urlencode($battleTag)."'>{$battleTag}</a></li>";
+foreach($top_users_results as $tu_key => $tu_value) {
+    ($tu_value['battletag'] == $_SESSION['ACTIVE_USER']) ? $active = "class='active'" : $active = "";
+    $user_list .= "<li {$active}><a href='?user=".urlencode($tu_value['battletag'])."&amp;region={$tu_value['region']}'>{$tu_value['battletag']}</a></li>";
 }
 $user_list .= '</ul></div></div></div>';
 
-// Build User Hero List
+
+// Build User Hero List based on career data TODO change to get from APP_DATA
 //
-if($_SESSION['ACTIVE_USER'] != '') {
-    $careers = $career_collection->find(array('battleTag' => $_SESSION['ACTIVE_USER']))->sort(array('lastUpdated' => -1))->limit(1);
-    $user_heros = '<div class="navbar"><div class="navbar-inner"><div class="container"><a class="brand" href="#">Heroes</a><ul class="nav">';
-    foreach($careers as $key => $value) {
-        foreach($value['heroes'] as $key3 => $value3) {
-            ($value3['id'] == $_SESSION['ACTIVE_HERO_ID']) ? $active = "class='active'" : $active = "";
-            ($value3['gender'] == 0) ? $gender = "male" : $gender = "female";
-            $user_heros .= "<li {$active}><a href='?hero_id={$value3['id']}&amp;gender={$gender}&amp;class={$value3['class']}'>{$value3['name']} - {$value3['class']} - {$value3['level']}</a></li>";
+if($_SESSION['ACTIVE_USER'] != '' && $_SESSION['ACTIVE_REGION'] != '') {
+    $careers = $career_collection->find(array('battleTag' => $_SESSION['ACTIVE_USER'], '_region' => $_SESSION['ACTIVE_REGION']))->sort(array('_id' => -1))->limit(1);
+    if($careers->count() > 0) {
+        // We have battle tag stored
+        //
+        $user_heros = '<div class="navbar"><div class="navbar-inner"><div class="container"><a class="brand" href="#">Heroes</a><ul class="nav">';
+        foreach($careers as $key => $value) {
+            foreach($value['heroes'] as $key3 => $value3) {
+                if($value3['id'] == $_SESSION['ACTIVE_HERO_ID']) {
+                    $active = "class='active '";
+                } else {
+                    $active = "";
+                }
+
+                ($value3['gender'] == 0) ? $gender = "male" : $gender = "female";
+                $user_heros .= "<li {$active}><a href='?hero_id={$value3['id']}'>{$value3['name']} - {$value3['class']} - {$value3['level']}</a></li>";
+            }
+        }
+        $user_heros .= '</ul></div></div></div>';
+
+        // Add data to APP_DATA collection
+        //
+        $app_data_results2 = $app_data_collection->find(array('battletag' => $_SESSION['ACTIVE_USER'], 'region' => $_SESSION['ACTIVE_REGION']))->sort(array('_id' => -1))->limit(1);
+
+        if($app_data_results2->count() > 0) {
+            $app_data_collection->update(array("battletag" => $_SESSION['ACTIVE_USER']), array('$set' => array("last_viewd_date" => date('F j, Y, g:i:s A'))));
+            $app_data_collection->update(array("battletag" => $_SESSION['ACTIVE_USER']), array('$inc' => array("views" => 1)));
+        } else {
+            // Since its a new collection we have many battletags that have not been inserted into APP_DATA. This should take care of it.
+            //
+            $app_data_insert = array('battletag'       => $_SESSION['ACTIVE_USER'],
+                                     'region'          => $_SESSION['ACTIVE_REGION'],
+                                     'searched_count'  => 0,
+                                     'views'           => 1,
+                                     'last_viewd_date' => date('F j, Y, g:i:s A'));
+
+            $app_data_collection->insert($app_data_insert);
         }
     }
-    $user_heros .= '</ul></div></div></div>';
 } else {
     $user_heros = '';
 }
 
+// Build Hero Details
+//
 if(!empty($_SESSION['ACTIVE_HERO_ID']) || !empty($_SESSION['HISTORIC_HERO_ID'])) {
     $user_history_list   = '';
     $user_stats_list     = '<table class="table table-bordered">';
@@ -83,20 +179,16 @@ if(!empty($_SESSION['ACTIVE_HERO_ID']) || !empty($_SESSION['HISTORIC_HERO_ID']))
     $last_updated_string = '';
     $items               = "<ul class='gear-slots'>";
 
-    $hero_history       = $hero_collection->find(array('id' => $_SESSION['ACTIVE_HERO_ID']))->sort(array('last-updated' => -1))->limit(HERO_HISTORY_LIMIT);
-    $hero_history_chart = $hero_collection->find(array('id' => $_SESSION['ACTIVE_HERO_ID']))->sort(array('last-updated' => 1))->limit(HERO_GRAPH_LIMIT);
+    $hero_history       = $hero_collection->find(array('id' => $_SESSION['ACTIVE_HERO_ID']))->sort(array('_id' => -1))->limit(HERO_HISTORY_LIMIT);
+    $hero_history_chart = $hero_collection->find(array('id' => $_SESSION['ACTIVE_HERO_ID']))->sort(array('_id' => 1))->limit(HERO_GRAPH_LIMIT);
 
     if(!empty($_SESSION['HISTORIC_HERO_ID'])) {
         $hero_stats = $hero_collection->find(array('_id' => new MongoId($_SESSION['HISTORIC_HERO_ID']), 'id' => $_SESSION['ACTIVE_HERO_ID']))->limit(1);
     } else {
-        $hero_stats = $hero_collection->find(array('id' => $_SESSION['ACTIVE_HERO_ID']))->sort(array('last-updated' => -1))->limit(1);
+        $hero_stats = $hero_collection->find(array('id' => $_SESSION['ACTIVE_HERO_ID']))->sort(array('_id' => -1))->limit(1);
     }
 
-    foreach($hero_history as $key => $value) {
-        $date               = date('F j, Y, g:i:s A', $value['last-updated']);
-        $user_history_list .= "<li><a href='?historic_hero_id={$value['_id']}'>{$date} Level: {$value['level']}</a></li>";
-    }
-
+    $i = 1;
     foreach($hero_history_chart as $key => $value) {
         $life_array[]         = $value['stats']['life'];
         $armor_array[]        = $value['stats']['armor'];
@@ -105,10 +197,25 @@ if(!empty($_SESSION['ACTIVE_HERO_ID']) || !empty($_SESSION['HISTORIC_HERO_ID']))
         $dexterity_array[]    = $value['stats']['dexterity'];
         $vitality_array[]     = $value['stats']['vitality'];
         $intelligence_array[] = $value['stats']['intelligence'];
-        $last_updated_array[] = "'".date('n/j/y', $value['last-updated'])."'";
+        $last_updated_array[] = "'".$i." - ".date('n/j/y', $value['last-updated'])."'";
+        $i++;
+    }
+
+    $i = $i - 1;
+    foreach($hero_history as $key => $value) {
+        $date               = date('F j, Y, g:i:s A', $value['last-updated']);
+        $date_id            = date('n/j/y', $value['last-updated']);
+        $user_history_list .= "<li><a rel='".$i." - {$date_id}' href='?historic_hero_id={$value['_id']}'>{$date} Level: {$value['level']}</a></li>";
+        $i--;
     }
 
     foreach($hero_stats as $key2 => $value2) {
+        // Set gender and class for paperdoll
+        //
+        $_SESSION['ACTIVE_CLASS']  = $value2['class'];
+        ($value2['gender'] == 0) ? $gender = "male" : $gender = "female";
+        $_SESSION['ACTIVE_GENDER'] = $gender;
+
         $resource = $value2['stats']['primaryResource'];
         if($value2['stats']['secondaryResource'] != 0) {
             $resource = $value2['stats']['primaryResource']. '/' .$value2['stats']['secondaryResource'];
@@ -449,9 +556,9 @@ if(!empty($_SESSION['ACTIVE_HERO_ID']) || !empty($_SESSION['HISTORIC_HERO_ID']))
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Diablo 3 Statistics</title>
+<title>Diablo 3 Historical Statistics</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Diablo 3 Statistics">
+<meta name="description" content="Diablo 3 Historical Statistics">
 <meta name="author" content="Armando Tresova <xjsv24@gmail.com>">
 <link href="css/bootstrap.css" rel="stylesheet">
 <link href="css/common.css?v42" rel="stylesheet">
@@ -471,12 +578,44 @@ if(!empty($_SESSION['ACTIVE_HERO_ID']) || !empty($_SESSION['HISTORIC_HERO_ID']))
 <div class="navbar navbar-inverse navbar-fixed-top">
     <div class="navbar-inner">
         <div class="container-fluid">
-            <a class="brand" href="#">Diablo 3</a>
+            <a class="brand" href="javascript:void(0)">Diablo 3 Historical Statistics</a>
+            <div class="nav-collapse collapse">
+                <ul class="nav">
+                  <li class="active">
+                    <a class="" href="/index.php">Home</a>
+                  </li>
+                  <li class="">
+                    <a class="" href="/app_stats.php">App Stats</a>
+                  </li>
+                  <li class="">
+                    <a class="" href="/change_log.php">Change Log</a>
+                  </li>
+                  <li class="">
+                    <a class="" href="/contact.php">Contact</a>
+                  </li>
+                </ul>
+            </div>
+
+            <form method="post" id="search_battletags" name="search_battletags" class="navbar-search pull-right form-search">
+                <div class="input-append search-override">
+                    <input type="text" name="search_battletag" id="search_battletag" placeholder="Search/Add BattleTag" class="span2 search-query">
+                    <select name="search_region" id="search_region" class="span1 search-query">
+                        <option value="us">US</option>
+                        <option value="eu">EU</option>
+                        <option value="tw">TW</option>
+                        <option value="kr">KR</option>
+                        <option value="cn">CN</option>
+                    </select>
+                    <button type="submit" class="btn btn-inverse">Search</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <div class="container-fluid">
+    <?=$bad_search_tag?>
+    <?=$search_tag_added?>
     <?=$user_list?>
     <?=$user_heros?>
     <div class="row-fluid">
@@ -516,7 +655,8 @@ if(!empty($_SESSION['ACTIVE_HERO_ID']) || !empty($_SESSION['HISTORIC_HERO_ID']))
     <hr>
 
     <footer>
-        <p>&copy; Diablo 3 Statistics</p>
+        <p>&copy; Diablo 3 Historical Statistics</p>
+        <p>This application or armandotresova.com is no way affiliated or endorsed by Blizzard Entertainment&#174;. All artwork related to the game and all other copyrighted content related to Diablo&#174; III is property of Blizzard Entertainment&#174;, Inc.</p>
     </footer>
 </div>
 <script src="js/jquery.min.js"></script>
@@ -528,6 +668,8 @@ if(!empty($_SESSION['ACTIVE_HERO_ID']) || !empty($_SESSION['HISTORIC_HERO_ID']))
 <script>
 var statsChart;
 $(document).ready(function() {
+    // clueTip listner for item tooltips
+    //
     $("a.slot-link").cluetip({
         closePosition : "title",
         sticky        : false,
@@ -552,8 +694,10 @@ $(document).ready(function() {
         },
         onShow : function() {
         }
-      });
+    });
 
+    // Highcharts
+    //
     statsChart = new Highcharts.Chart({
        chart: {
           renderTo: 'graph',
@@ -570,9 +714,34 @@ $(document).ready(function() {
              text: 'Amount'
           }
        },
+       plotOptions: {
+            series: {
+                cursor: 'pointer',
+                point: {
+                    events: {
+                        click: function() {
+                            var href = $(".nav-list li a[rel='"+this.category+"']").attr('href');
+                            window.location = href;
+                        }
+                    }
+                }
+            }
+        },
        series: [<?=$data_string?>]
     });
 });
+</script>
+<script>
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', '<?=$GOOGLE_ANALYTICS?>']);
+  _gaq.push(['_trackPageview']);
+  _gaq.push(['_trackPageLoadTime']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
 </script>
 </body>
 </html>

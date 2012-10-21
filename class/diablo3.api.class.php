@@ -28,9 +28,9 @@ class Diablo3 {
     private $item_img_sizes      = array('small', 'large');
     private $skill_img_url;
     private $skill_img_sizes     = array('21', '42', '64');
-    private $item_save_loc       = '/d3_stats_git/img/items/';   // Relative to DOCUMENT_ROOT
-    private $skills_save_loc     = '/d3_stats_git/img/skills/';  // Relative to DOCUMENT_ROOT
-    private $paperdolls_save_loc = '/d3_stats_git/img/paperdolls/';  // Relative to DOCUMENT_ROOT
+    private $item_save_loc       = '/img/items/';       // Relative to DOCUMENT_ROOT
+    private $skills_save_loc     = '/img/skills/';      // Relative to DOCUMENT_ROOT
+    private $paperdolls_save_loc = '/img/paperdolls/';  // Relative to DOCUMENT_ROOT
     private $skill_url;
     private $paperdoll_url;
     private $genders             = array('male', 'female');

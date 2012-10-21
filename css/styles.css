@@ -33,6 +33,9 @@ body {
     max-width: none;
 }
 
+.search-override .btn{
+    margin: 0;
+}
 /*Utils*/
 .clear {
     clear: both;
@@ -67,4 +70,33 @@ body {
 #stats_table {
     max-height: 675px;
     overflow-y: auto;
+}
+#search_region {
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+    padding: 4px 8px;
+}
+
+/*Contact Page*/
+.contact-message {
+    width: 360px;
+}
+label.valid {
+  width: 24px;
+  height: 24px;
+  background: url(../img/valid.png) center center no-repeat;
+  display: inline-block;
+  text-indent: -9999px;
+}
+label.error {
+    font-weight: bold;
+    color: red;
+    padding: 2px 8px;
+    margin-top: 2px;
+}
+.spam {
+   visibility: hidden;
+   display: none;
+   height: 0;
 }

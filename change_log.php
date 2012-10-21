@@ -6,29 +6,15 @@ require_once('include/functions.php');
 unregisterGlobals();
 removeMagicQuotes();
 
-$connection           = new Mongo();
-$db                   = $connection->selectDB(PROD_DB);
-$db->authenticate(PROD_DB_USER, PROD_DB_PASS);
-$app_stats_collection = $db->selectCollection(APP_STATS_COLLECTION);
-$app_stats_data       = $app_stats_collection->find()->sort(array('_id' => -1))->limit(APP_STATS_LIMIT);
-$GOOGLE_ANALYTICS     = GOOGLE_ANALYTICS;
-
-// Build User List
-//
-$app_stats = '<div id="stats_table"><table class="table table-condensed table-hover"><thead><th>Date Time</th><th>Source</th><th># of Accounts</th><th># of Calls</th><th>Run Time</th></thead>';
-foreach($app_stats_data as $value) {
-    $source     = ucfirst($value['source']);
-    $app_stats .= "<tr><td>{$value['date_time']}</td><td>{$source}</td><td>{$value['number_of_accounts']}</td><td>{$value['number_of_calls']}</td><td>{$value['run_time']} seconds</td></tr>";
-}
-$app_stats .= '</table></div>';
+$GOOGLE_ANALYTICS = GOOGLE_ANALYTICS;
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Diablo 3 Historical Statistics - App Statistics</title>
+<title>Diablo 3 Historical Statistics - Change Log</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Diablo 3 Historical Statistics - App Statistics">
+<meta name="description" content="Diablo 3 Historical Statistics - Change Log">
 <meta name="author" content="Armando Tresova <xjsv24@gmail.com>">
 <link href="css/bootstrap.css" rel="stylesheet">
 <link href="css/styles.css?v1" rel="stylesheet">
@@ -47,10 +33,10 @@ $app_stats .= '</table></div>';
                   <li class="">
                     <a class="" href="/index.php">Home</a>
                   </li>
-                  <li class="active">
+                  <li class="">
                     <a class="" href="/app_stats.php">App Stats</a>
                   </li>
-                  <li class="">
+                  <li class="active">
                     <a class="" href="/change_log.php">Change Log</a>
                   </li>
                   <li class="">
@@ -66,13 +52,15 @@ $app_stats .= '</table></div>';
     <div class="row-fluid">
         <div class="span3">
             <div class="well">
-                This area show a log of the data load process. Currently this happens manually until I create a scheduled job to run it on an interval.
+                This area shows the change log of the application.
             </div>
         </div>
 
         <div class="span9">
             <div class="row-fluid">
-                <?=$app_stats?>
+                <ul class="well">
+                    <li>10/20/2012: Added seach/add battletag functionality, contact page, app stats and now the "Hero" list shows top 15 most viewed battletags. If your battletag does not exist in the db it will be added to the queue.</li>
+                </ul>
             </div>
         </div>
     </div>
