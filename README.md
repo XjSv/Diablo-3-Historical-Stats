@@ -11,11 +11,8 @@ It has little documentation, but I will document more on the days to come.
  - Battlenet Account
  - PHP 5.3+
  - MongoDB
- - ** Windows (for the load process)  
 
 - - -
-
-** For other OS's you can either run the scheduled jobs manually via the browser or hopefully you know how to schedule jobs for your OS. If not and requested I will post instructions.
 
 ### Setup  
 - - -
