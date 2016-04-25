@@ -7,4 +7,4 @@ Using: https://github.com/XjSv/Diablo-3-API-PHP
 
 Demo Video: http://www.youtube.com/watch?v=LozMnrCti5g
 
-Live Site: http://www.d3stats.tk
+Live Site: No Longer Online
